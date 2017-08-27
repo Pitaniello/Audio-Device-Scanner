@@ -2253,13 +2253,13 @@ static void ScanDeviceInterfaces( IMMDevice *p_device )
         {
             tabs.Inc();
 
-            IEnumPins *p_bassPins;
-            result = p_baseFilter->EnumPins( &p_bassPins );
+            IEnumPins *p_basePins;
+            result = p_baseFilter->EnumPins( &p_basePins );
             if ( SUCCEEDED( result.GetResult() ) )
             {
                 int pinIdx = 1;
                 IPin *p_basePin;
-                result = p_bassPins->Next( 1, &p_basePin, 0 );
+                result = p_basePins->Next( 1, &p_basePin, 0 );
                 while ( result == S_OK )
                 {
                     std::cout << tabs << "Pin " << pinIdx << std::endl;
@@ -2321,15 +2321,15 @@ static void ScanDeviceInterfaces( IMMDevice *p_device )
                         std::cout << tabs << result << std::endl;
                     }
 
-                    IEnumMediaTypes *p_bassMediaTypeEnum;
-                    result = p_basePin->EnumMediaTypes( &p_bassMediaTypeEnum );
+                    IEnumMediaTypes *p_baseMediaTypeEnum;
+                    result = p_basePin->EnumMediaTypes( &p_baseMediaTypeEnum );
                     if ( SUCCEEDED( result.GetResult() ) )
                     {
                         std::cout << tabs << "Other known media types: " << std::endl;
                         tabs.Inc();
 
                         AM_MEDIA_TYPE *p_baseMediaType;
-                        result = p_bassMediaTypeEnum->Next( 1, &p_baseMediaType, 0 );
+                        result = p_baseMediaTypeEnum->Next( 1, &p_baseMediaType, 0 );
                         while ( result == S_OK )
                         {
                             std::cout << tabs << "Base media Type: " << std::endl;
@@ -2345,16 +2345,16 @@ static void ScanDeviceInterfaces( IMMDevice *p_device )
 
                             tabs.Dec();
                             _DeleteMediaType( p_baseMediaType );
-                            result = p_bassMediaTypeEnum->Next( 1, &p_baseMediaType, 0 );
+                            result = p_baseMediaTypeEnum->Next( 1, &p_baseMediaType, 0 );
                         }
 
                         tabs.Dec();
-                        p_bassMediaTypeEnum->Reset();
-                        p_bassMediaTypeEnum->Release();
+                        p_baseMediaTypeEnum->Reset();
+                        p_baseMediaTypeEnum->Release();
                     }
                     else
                     {
-                        std::cout << tabs << "Failed to obtain list of base pin media types.." << std::endl;
+                        std::cout << tabs << "Failed to obtain list of base pin media types." << std::endl;
                         std::cout << tabs << result << std::endl;
                     }
 
@@ -2395,16 +2395,6 @@ static void ScanDeviceInterfaces( IMMDevice *p_device )
                     result = p_basePin->QueryPinInfo( &basePinInfo );
                     if ( SUCCEEDED( result.GetResult() ) )
                     {
-                        char szName[MAX_FILTER_NAME];
-                        int cch = WideCharToMultiByte(CP_ACP, 0, basePinInfo.achName,
-                                                       MAX_FILTER_NAME, szName, MAX_FILTER_NAME, 0, 0);
-                        if ( cch > 0 )
-                        {
-                            std::cout << tabs << tabs << ( szName ? szName : "Unkown Filter Name" ) << std::endl;
-                        }
-
-                        std::cout << tabs << "Pin Direction: " << basePinInfo.dir << std::endl;
-
                         CLSID owner;
                         if ( basePinInfo.pFilter )
                         {
@@ -2426,11 +2416,11 @@ static void ScanDeviceInterfaces( IMMDevice *p_device )
                     }
 
                     tabs.Dec();
-                    result = p_bassPins->Next( 1, &p_basePin, 0 );
+                    result = p_basePins->Next( 1, &p_basePin, 0 );
                 }
 
-                p_bassPins->Reset();
-                p_bassPins->Release();
+                p_basePins->Reset();
+                p_basePins->Release();
             }
             else
             {
@@ -2450,11 +2440,11 @@ static void ScanDeviceInterfaces( IMMDevice *p_device )
                 std::cout << tabs << result << std::endl;
             }
 
-            FILTER_STATE bassFilterState;
-            result = p_baseFilter->GetState( 0, &bassFilterState );
+            FILTER_STATE baseFilterState;
+            result = p_baseFilter->GetState( 0, &baseFilterState );
             if ( SUCCEEDED( result.GetResult() ) )
             {
-                std::cout << tabs << "Base Filter State: " << bassFilterState << std::endl;
+                std::cout << tabs << "Base Filter State: " << baseFilterState << std::endl;
             }
             else
             {
@@ -2462,24 +2452,24 @@ static void ScanDeviceInterfaces( IMMDevice *p_device )
                 std::cout << tabs << result << std::endl;
             }
 
-            IReferenceClock *p_bassReferenceClock;
-            result = p_baseFilter->GetSyncSource( &p_bassReferenceClock );
+            IReferenceClock *p_baseReferenceClock;
+            result = p_baseFilter->GetSyncSource( &p_baseReferenceClock );
             if ( SUCCEEDED( result.GetResult() ) )
             {
-                if ( p_bassReferenceClock )
+                if ( p_baseReferenceClock )
                 {
-                    REFERENCE_TIME bassReferenceTime;
-                    result = p_bassReferenceClock->GetTime( &bassReferenceTime );
+                    REFERENCE_TIME baseReferenceTime;
+                    result = p_baseReferenceClock->GetTime( &baseReferenceTime );
                     if ( SUCCEEDED( result.GetResult() ) )
                     {
-                        std::cout << tabs << "Base Clock Reference Time: " << bassReferenceTime << std::endl;
+                        std::cout << tabs << "Base Clock Reference Time: " << baseReferenceTime << std::endl;
                     }
                     else
                     {
                         std::cout << tabs << "Failed to obtain reference clock time." << std::endl;
                         std::cout << tabs << result << std::endl;
                     }
-                    p_bassReferenceClock->Release();
+                    p_baseReferenceClock->Release();
                 }
                 else
                 {
@@ -2492,21 +2482,29 @@ static void ScanDeviceInterfaces( IMMDevice *p_device )
                 std::cout << tabs << result << std::endl;
             }
 
-            FILTER_INFO bassFilterInfo;
-            result = p_baseFilter->QueryFilterInfo( &bassFilterInfo );
+            FILTER_INFO baseFilterInfo;
+            result = p_baseFilter->QueryFilterInfo( &baseFilterInfo );
             if ( SUCCEEDED( result.GetResult() ) )
             {
                 char szName[MAX_FILTER_NAME];
-                int cch = WideCharToMultiByte(CP_ACP, 0, bassFilterInfo.achName,
+                int cch = WideCharToMultiByte(CP_ACP, 0, baseFilterInfo.achName,
                                                MAX_FILTER_NAME, szName, MAX_FILTER_NAME, 0, 0);
                 if ( cch > 0 )
                 {
-                    std::cout << tabs << ( szName ? szName : "Unkown Filter Name" ) << std::endl;
+                    std::cout << tabs << "Base filter name: ";
+                    if ( szName && *szName )
+                    {
+                        std::cout << szName << std::endl; 
+                    }
+                    else
+                    {
+                        std::cout << "Unkown Filter Name" << std::endl;
+                    }
                 }
 
-                if ( bassFilterInfo.pGraph )
+                if ( baseFilterInfo.pGraph )
                 {
-                    bassFilterInfo.pGraph->Release();
+                    baseFilterInfo.pGraph->Release();
                 }
             }
             else
@@ -2530,7 +2528,7 @@ static void ScanDeviceInterfaces( IMMDevice *p_device )
                 }
                 CoTaskMemFree( p_baseVendorInfo );
             }
-            else if ( result == E_NOTFOUND )
+            else if ( result == E_NOTFOUND || result == E_NOTIMPL )
             {
                 std::cout << "Not provided." << std::endl;
             }
@@ -2672,7 +2670,7 @@ static void ScanDeviceInterfaces( IMMDevice *p_device )
             
                 for ( UINT connectorIdx = 0; connectorIdx < connectorCount; connectorIdx++ )
                 {
-                    std::cout << "Connection " << connectorIdx + 1 << std::endl;
+                    std::cout << tabs << "Connection " << connectorIdx + 1 << std::endl;
                     tabs.Inc();
 
                     IConnector *p_connector = nullptr;
